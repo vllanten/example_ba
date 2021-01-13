@@ -1,0 +1,187 @@
+<html>
+
+<head>
+    <link href="/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
+</head>
+
+<style>
+    .loader {
+        position: fixed;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        background: url('//upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Phi_fenomeni.gif/50px-Phi_fenomeni.gif') 50% 50% no-repeat rgb(249, 249, 249);
+    }
+
+
+    .loaders {
+        float: left;
+        border: 16px solid #f3f3f3;
+        /* Light grey */
+        border-top: 16px solid #3498db;
+        /* Blue */
+        border-radius: 50%;
+        width: 10px;
+        height: 10px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<body>
+
+    <div class="loader"></div>
+
+    <div class="container " style="visibility: hidden;">
+        <div class="row  justify-content-center align-items-center">
+            <h1> LISTADO DE USUARIOS</h1>
+        </div>
+
+
+        <div class="row  ">
+            <div class="col-10">
+                <div class="float-right">
+                    <button class="btn btn-success " style="margin-bottom: 20px;"
+                    onclick="nuevoRegistro()">Nuevo Registro</button>
+                </div>
+            </div>
+            <div class="col-2"></div>
+        </div>
+
+        <div class="row  justify-content-center ">
+
+            
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th> idUsuario</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Correo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="tableBody">
+                    <tr class="trEmpy">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="/js/jquery.dataTables.min.js" type="text/javascript"></script>
+
+    <script>
+
+        
+
+        $.ajax({
+            url: "/user.php",
+            method: "GET",
+            headers: {
+                "token": localStorage.token,
+            },
+            dataType: "json",
+            success: function (data) {
+                $(".loader").css('visibility', 'hidden')
+                $(".container").css('visibility', 'visible')
+
+                $(".trEmpy").remove()
+                data.forEach(function (row) {
+                    $(".tableBody").append(
+                        "<tr class=\"usuario_" + row.id + "\">" +
+                        "<td>" + row.id + "</td>" +
+                        "<td>" + row.nombres + "</td>" +
+                        "<td>" + row.apellidos + "</td>" +
+                        "<td>" + row.correo + "</td>" +
+                        "<td > \
+                            <button class=\"btn btn-warning\" onClick=\"editar("+ row.id + ")\">Editar</button> \
+                            <button class=\"btn btn-danger\" onClick=\"eliminar("+ row.id + ")\">Eliminar</button> \
+                            <div class=\"loaders  lusuario_"+ row.id + " \" style=\"visibility: hidden;\"></div>\
+                            </td>" +
+                        "</tr>"
+                    )
+                })
+
+                $('.table').DataTable();
+
+            },
+            error: function (data) {
+            },
+            statusCode: {
+                401: function () {
+                    window.location.href = "/login.html";
+                }
+            }
+        });
+
+
+        function eliminar(id) {
+            var result = confirm("Seguro quiere eliminar?");
+
+            if (result) {
+                // the user clicked ok
+
+                $(".lusuario_" + id).css('visibility', 'visible')
+
+                $.ajax({
+                    url: "/user.php?id=" + id,
+                    method: "DELETE",
+                    headers: {
+                        "token": localStorage.token,
+                        "content-type": "application/json",
+                    },
+                    dataType: "json",
+                    success: function (resp) {
+                        if (resp.success) {
+                            $(".usuario_" + id).remove()
+                        }
+                    },
+                    error: function (data) {
+                        $(".lusuario_" + id).css('visibility', 'hidden')
+                    },
+                    statusCode: {
+                        401: function () {
+                            window.location.href = "/login.html";
+                        }
+                    }
+                })
+
+            }
+
+        }
+        function editar(id) {
+            window.location.href = "/edit.html?id=" + id;
+        }
+        function nuevoRegistro(){
+            window.location.href = "/add.html";
+        }
+        
+
+    </script>
+
+</body>
+
+</html>
